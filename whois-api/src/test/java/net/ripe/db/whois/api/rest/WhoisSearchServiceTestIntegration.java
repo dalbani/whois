@@ -247,6 +247,18 @@ public class WhoisSearchServiceTestIntegration extends AbstractIntegrationTest {
     }
 
     @Test
+    public void search_text_plain_extension_only() {
+        try {
+            RestTest.target(getPort(), "/whois/search/.txt")
+                    .request()
+                    .get(WhoisResources.class);
+            fail();
+        } catch (BadRequestException e) {
+            assertThat(e.getResponse().readEntity(String.class), containsString("Ambiguous URI empty segment"));
+        }
+    }
+
+    @Test
     public void search_json_extension() {
         final WhoisResources whoisResources = RestTest.target(getPort(), "whois/search.json?query-string=OWNER-MNT&source=TEST")
                 .request()
