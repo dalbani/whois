@@ -161,7 +161,7 @@ public class WhoisRdapService {
                 throw new RdapException("501 Not Implemented", "Nameserver not supported", HttpStatus.NOT_IMPLEMENTED_501);
             }
             default: {
-                throw new RdapException("400 Not Request", "unknown type" + requestType, HttpStatus.BAD_REQUEST_400);
+                throw new RdapException("400 Bad Request", "unknown type" + requestType, HttpStatus.BAD_REQUEST_400);
             }
         }
     }
@@ -225,14 +225,18 @@ public class WhoisRdapService {
     }
 
     private Response lookupForAutNum(final HttpServletRequest request, final String key) {
-        if (isRedirect(AUT_NUM, key) && !rdapRequestValidator.isReservedAsNumber(key)) {
-            return redirect(getRequestPath(request), AUT_NUM, key);
+        try {
+            if (isRedirect(AUT_NUM, key) && !rdapRequestValidator.isReservedAsNumber(key)) {
+                return redirect(getRequestPath(request), AUT_NUM, key);
+            }
+
+            final Query query = getQueryObject(ImmutableSet.of(AUT_NUM), key);
+            List<RpslObject> result = rdapQueryHandler.handleAutNumQuery(query, request);
+
+            return getResponse(request, result);
+        } catch (RdapException ex){
+            throw new AutnumException(ex.getErrorTitle(), ex.getErrorDescription(), ex.getErrorCode());
         }
-
-        final Query query = getQueryObject(ImmutableSet.of(AUT_NUM), key);
-        List<RpslObject> result = rdapQueryHandler.handleAutNumQuery(query, request);
-
-        return getResponse(request, result);
     }
 
     private Boolean isRedirect(ObjectType objectType, final String key) {
@@ -376,6 +380,10 @@ public class WhoisRdapService {
 
         final RpslObject resultObject = rpslIterator.next();
 
+        if (isIANABlock(resultObject)){
+            throw new RdapException("404 Not Found", "Requested object not found", HttpStatus.NOT_FOUND_404);
+        }
+
         if (rpslIterator.hasNext()) {
             throw new RdapException("500 Internal Error", "Unexpected result size: " + Iterators.size(rpslIterator),
                     HttpStatus.INTERNAL_SERVER_ERROR_500);
@@ -390,12 +398,17 @@ public class WhoisRdapService {
                 .build();
     }
 
+    private boolean isIANABlock(final RpslObject rpslObject) {
+        return rpslObject.getKey().toString().equals("::/0") || rpslObject.getKey().toString().equals("0.0.0.0 - 255.255.255.255");
+    }
+
     private Response redirect(final String requestPath, final Query query) {
         final URI uri;
         try {
             uri = delegatedStatsService.getUriForRedirect(requestPath, query);
         } catch (WebApplicationException e) {
-            throw new RdapException("404 Redirect URI not found", e.getMessage(), HttpStatus.NOT_FOUND_404);
+            LOGGER.error(e.getMessage(), e);
+            throw new RdapException("404 Not found", "Redirect URI not found", HttpStatus.NOT_FOUND_404);
         }
 
         return Response.status(Response.Status.MOVED_PERMANENTLY).location(uri).build();
@@ -406,7 +419,8 @@ public class WhoisRdapService {
         try {
             uri = delegatedStatsService.getUriForRedirect(requestPath, objectType, searchValue);
         } catch (WebApplicationException e) {
-            throw new RdapException("404 Redirect URI not found", e.getMessage(), HttpStatus.NOT_FOUND_404);
+            LOGGER.error(e.getMessage(), e);
+            throw new RdapException("404 Not found", "Redirect URI not found", HttpStatus.NOT_FOUND_404);
         }
 
         return Response.status(Response.Status.MOVED_PERMANENTLY).location(uri).build();
@@ -420,7 +434,8 @@ public class WhoisRdapService {
                         getReverseObjectType(domain),
                         domain.getReverseIp().toString());
         } catch (WebApplicationException e) {
-            throw new RdapException("404 Redirect URI not found", e.getMessage(), HttpStatus.NOT_FOUND_404);
+            LOGGER.error(e.getMessage(), e);
+            throw new RdapException("404 Not found", "Redirect URI not found", HttpStatus.NOT_FOUND_404);
         }
 
         return Response.status(Response.Status.MOVED_PERMANENTLY).location(uri).build();
