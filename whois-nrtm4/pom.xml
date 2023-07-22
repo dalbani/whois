@@ -5,7 +5,7 @@
     <parent>
         <artifactId>whois</artifactId>
         <groupId>net.ripe.db</groupId>
-        <version>${revision}</version>
+        <version>1.0-jakarta-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
