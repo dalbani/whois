@@ -4,10 +4,10 @@ import com.google.common.net.HttpHeaders;
 import net.ripe.db.nrtm4.domain.NrtmDocumentType;
 import org.apache.commons.lang.StringUtils;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.IOException;
 import java.util.Map;
 

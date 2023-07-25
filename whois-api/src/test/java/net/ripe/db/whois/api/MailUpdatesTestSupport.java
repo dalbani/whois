@@ -6,14 +6,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 
 @Component
@@ -30,7 +31,7 @@ public class MailUpdatesTestSupport {
     public String insert(final String content) {
         try {
             final InputStream is = new ByteArrayInputStream(content.getBytes());
-            final MimeMessage message = new MimeMessage(null, is);
+            final MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()), is);
             mailMessageDao.addMessage(message);
             final Address[] from = message.getFrom();
             return (from.length > 0) ? ((InternetAddress)from[0]).getAddress() : null;
@@ -52,7 +53,11 @@ public class MailUpdatesTestSupport {
     private void addMessage(final String from, final String to, final String subject, final String body) throws MessagingException {
         LOGGER.info("Send email from address {} with subject {}", from, subject);
 
-        final MimeMessage message = new MimeMessage((Session) null);
+        Properties props = System.getProperties();
+        props.put("mail.smtp.host", "127.0.0.1");
+        Session session = Session.getInstance(props);
+
+        final MimeMessage message = new MimeMessage(session);
         message.setFrom(new InternetAddress(from));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject);

@@ -1,5 +1,7 @@
 package net.ripe.db.whois;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import net.ripe.db.whois.api.MailUpdatesTestSupport;
 import net.ripe.db.whois.api.httpserver.JettyBootstrap;
 import net.ripe.db.whois.api.mail.dequeue.MessageDequeue;
@@ -42,8 +44,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;

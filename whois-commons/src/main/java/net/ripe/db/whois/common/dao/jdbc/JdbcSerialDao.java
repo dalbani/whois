@@ -14,7 +14,6 @@ import javax.annotation.CheckForNull;
 import javax.sql.DataSource;
 import java.util.List;
 
-
 @Repository
 @Primary
 public class JdbcSerialDao implements SerialDao {
